@@ -17,6 +17,23 @@ Jawab :
 - Lalu dalam xmp_getattr dimasukkan fungsi enkripsi supaya file dapat menemukan lokasi sesungguhnya dengan nama semula.
 
 # SOAL 2
+Semua file video yang tersimpan secara terpecah-pecah (splitted) harus secara otomatis tergabung (joined) dan diletakkan dalam folder “Videos”
+Urutan operasi dari kebutuhan ini adalah:
+- Tepat saat sebelum file system di-mount
+  1.	Secara otomatis folder “Videos” terbuat di root directory file system
+  2.	Misal ada sekumpulan file pecahan video bernama “computer.mkv.000”, “computer.mkv.001”, “computer.mkv.002”, dst. Maka secara otomatis file pecahan tersebut akan di-join menjadi file video “computer.mkv”
+Untuk mempermudah kalian, dipastikan hanya video file saja yang terpecah menjadi beberapa file. File pecahan tersebut dijamin terletak di root folder fuse
+  3.	Karena mungkin file video sangat banyak sehingga mungkin saja saat menggabungkan file video, file system akan membutuhkan waktu yang lama untuk sukses ter-mount. Maka pastikan saat akan menggabungkan file pecahan video, file system akan membuat 1 thread/proses(fork) baru yang dikhususkan untuk menggabungkan file video tersebut
+  4.	Pindahkan seluruh file video yang sudah ter-join ke dalam folder “Videos”
+  5.	Jangan tampilkan file pecahan di direktori manapun
+- Tepat saat file system akan di-unmount
+  1.	Hapus semua file video yang berada di folder “Videos”, tapi jangan hapus file pecahan yang terdapat di root directory file system
+  2.	Hapus folder “Videos” 
+  
+  - Langkah
+  1. Mengatur init agar dapat membuat folder Videos jika belum ada.
+  2. Kendala saat ini belum mengetahui cara untuk menggabungkan video.
+  3. Untuk menghapus Videos dapat menggunakan destroy.
 # SOAL 3
 Sebelum diterapkannya file system ini, Atta pernah diserang oleh hacker LAPTOP_RUSAK yang menanamkan user bernama “chipset” dan “ic_controller” serta group “rusak” yang tidak bisa dihapus. Karena paranoid, Atta menerapkan aturan pada file system ini untuk menghapus “file bahaya” yang memiliki spesifikasi:
 Owner Name 	: ‘chipset’ atau ‘ic_controller’
