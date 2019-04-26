@@ -30,7 +30,7 @@ Untuk mempermudah kalian, dipastikan hanya video file saja yang terpecah menjadi
   1.	Hapus semua file video yang berada di folder “Videos”, tapi jangan hapus file pecahan yang terdapat di root directory file system
   2.	Hapus folder “Videos” 
   
-  - Langkah
+- Langkah
   1. Mengatur init agar dapat membuat folder Videos jika belum ada.
   2. Kendala saat ini belum mengetahui cara untuk menggabungkan video.
   3. Untuk menghapus Videos dapat menggunakan destroy.
