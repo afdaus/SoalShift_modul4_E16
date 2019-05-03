@@ -40,10 +40,9 @@ Owner Name 	: ‘chipset’ atau ‘ic_controller’
 Group Name	: ‘rusak’
 Tidak dapat dibaca
 Jika ditemukan file dengan spesifikasi tersebut ketika membuka direktori, Atta akan menyimpan nama file, group ID, owner ID, dan waktu terakhir diakses dalam file “filemiris.txt” (format waktu bebas, namun harus memiliki jam menit detik dan tanggal) lalu menghapus “file bahaya” tersebut untuk mencegah serangan lanjutan dari LAPTOP_RUSAK.
-
-- Untuk menyelesaikan soal nomor 3, maka terlebih dahulu kita mengambil owner dan group name dari sebuah file. Hal ini dapat dilakukan dengan menggunakan `getpwuid(st.st_uid)` untuk mengambil nama owner, dan `getgrgid(st.st_uid)` untuk mengambil nama group.
+- Untuk menyelesaikan soal nomor 3, maka terlebih dahulu kitamengambil owner dan group name dari sebuah file. Hal ini dapat dilakukan dengan menggunakan `getpwuid(st.st_uid)` untuk mengambil namawner, dan `getgrgid(st.st_uid)` untuk mengambil nama group.
 - Untuk mengambil file yang sesuai dengan permintaan soal, maka dapat menggunakan `strcmp`, serta menggunakan `st.st_atime` untuk mengambil waktu diaksesnya sebuah file. Setelah itu, untuk memasukkan ke dalam file, maka dapat menggunakan `FILE` pada c, dan menggunakan `fprintf` untuk mencetak ke dalam file tersebut.
-- Untuk nomor 3, kelompok kami masih belum benar, terutama karna file yang seharusnya tidak dimasukkan ke dalam folder tujuan itu tetap muncul pada folder tujuan, serta pada filemiris.txt file yang bersangkutan masih terbaca ownernya sebagai kami.
+
 # SOAL 4
 Pada folder YOUTUBER, setiap membuat folder permission foldernya akan otomatis menjadi 750. Juga ketika membuat file permissionnya akan otomatis menjadi 640 dan ekstensi filenya akan bertambah “.iz1”. File berekstensi “.iz1” tidak bisa diubah permissionnya dan memunculkan error bertuliskan “File ekstensi iz1 tidak boleh diubah permissionnya.”
 
