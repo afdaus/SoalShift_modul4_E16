@@ -208,77 +208,108 @@ char* formatdate(char* str, time_t val){
 }
 
 static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
-		       off_t offset, struct fuse_file_info *fi)
-{
-  char fpath[1000];
-	char temp[1000];
-	char enkrip[1000];
-	sprintf(enkrip, "%s", path);
-	encrypt(enkrip);
-	sprintf(fpath, "%s%s",dirpath,enkrip);
-
-	int res = 0;
-
+		       off_t offset, struct fuse_file_info *fi){
+  	char fileTujuan[1000];
+  	char sementara[1000];	
+	strcpy(sementara,path);
+	encrypt(sementara);
+	char target1[20]="chipset";
+	char targetgrup[20]="rusak";
+	char target2[20]="ic_controller";
 	DIR *dp;
 	struct dirent *de;
+
+	if(strcmp(sementara,"/") == 0)
+	{
+		sprintf(fileTujuan,"%s",dirpath);
+	}
+	else{
+		sprintf(fileTujuan, "%s%s",dirpath,sementara);
+	} 
+	int res = 0;
+
 
 	(void) offset;
 	(void) fi;
 
-	dp = opendir(fpath);
+	dp = opendir(fileTujuan);
 	if (dp == NULL)
 		return -errno;
 
-	while ((de = readdir(dp)) != NULL) {
+	while ((de = readdir(dp)) != NULL) 
+	{
+		//memset(result,'\0',sizeof(result));
+		memset(sementara,'\0',sizeof(sementara));
 		struct stat st;
-		char waktu[50];
-		struct stat su;
-		memset(&su, 0, sizeof(su));
 		memset(&st, 0, sizeof(st));
-		strcpy(temp,de->d_name);
-		decrypt(temp);
 		st.st_ino = de->d_ino;
 		st.st_mode = de->d_type << 12;
-		stat(fpath,&su);
-		struct passwd *pw;
-		struct group *gr;
-		mode_t ijin;
-		pw = getpwuid(su.st_uid);
-		ijin = su.st_mode;
-		gr = getgrgid(su.st_uid);
-		printf("sblm chipset\n");
-		if(strcmp(temp,"cc")==0 || strcmp(temp,"c")==0)
-		{res = (filler(buf, de->d_name, &st, 0));}
-		else
-		{
-		if(strcmp(pw->pw_name,"chipset")!=0 || strcmp(pw->pw_name,"ic_controller")!=0)
-		{	
-			if(strcmp(gr->gr_name,"rusak")!=0)
-			{ 
-			FILE *filelog;
-			char filenya[300];
-			sprintf(filenya,"%s %s %s %s\n", temp, pw->pw_name, gr->gr_name, formatdate(waktu, su.st_atime));
-			char lok[500];
-			sprintf(lok,"%s/filemiris.txt",dirpath);
-			filelog = fopen(lok,"a");
-			if (filelog == NULL) 
-			{
-    			perror("fopen");
-    			return -1;
-		    	exit(EXIT_FAILURE);
-			}
-			fprintf(filelog, "%s",filenya);
-			fclose(filelog);
-		printf("setelah chipset\n");
-				res = (filler(buf, temp, &st, 0));
-				if(res!=0) continue;
-			}
-		}
-		memset(&pw, 0, sizeof(pw));
-		memset(&pw, 0, sizeof(pw));
-		}
-		}
+		strcpy(sementara,de->d_name);
+		char pathnya[1000];
+		gid_t gid;
+		uid_t uid;
+		strcpy(pathnya,fileTujuan);
+		strcpy(pathnya+strlen(pathnya),"/");
+		strcpy(pathnya+strlen(pathnya),sementara);
 
+		//printf("ini path skrg: %s\n", pathnya);
+		stat(pathnya,&st);
+
+		gid = st.st_gid;
+		uid = st.st_uid;
+		struct group *grp;
+		grp = getgrgid(gid);
+
+		char namegrup[20];
+		strcpy(namagrup, grp->gr_name);
+
+		struct passwd *usr;
+		usr = getpwuid(uid);
+
+		char namauser[20];
+		strcpy(namauser, usr->pw_name);
+		//printf("ini grpname: %s dan usrname %s\n\n %s" ,namagrup, namauser, target1);
+		if(strcmp(namauser,target1) == 0) 
+		{
+			//printf("masuk sini broo\n");
+			FILE *cek;
+			cek = fopen(pathnya,"r");
+			if(cek!=NULL){
+				FILE *target;
+				//printf("ga bisa dibuka broo\n");
+				char tujuan[1005];
+				char textTujuan[1005];
+				strcpy(tujuan,"/filemiris.txt");
+				encrypt(tujuan);
+				printf("dirpath : %s\n", dirpath);
+				sprintf(textTujuan, "%s%s", dirpath,tujuan);
+				printf("ini path miris: %s\n" , textTujuan);
+				target = fopen(textTujuan,"w");
+				if(target==NULL)
+				{
+					int fd;
+					mode_t perm = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
+
+					fd = creat(textTujuan, perm);
+					if (fd == -1)
+						return -errno;
+				}
+				struct tm mod = *localtime(&(st.st_atime));
+				char isiFIlenya[1100];
+				memset(isiFIlenya,'\0',sizeof(isiFIlenya));
+				sprintf(isiFilenya,"%s %s %s %s\n", temp, pw->pw_name, gr->gr_name, formatdate(waktu, su.st_atime));
+				fputs(isiFIlenya,target);
+				fclose(target);
+				remove(pathnya);
+			}
+			else fclose(cek);
+		}
+		if (strcmp(sementara, ".") != 0 && strcmp(sementara, "..") != 0) {
+			decrypt(sementara);
+			res = (filler(buf, sementara, &st, 0));
+			if(res!=0) break;
+		}
+	}
 	closedir(dp);
 	return 0;
 }
