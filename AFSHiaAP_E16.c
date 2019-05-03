@@ -17,7 +17,7 @@
 static const char *dirpath = "/home/bastian/shift4";
 int remove_directory(const char *path);
 
-void decrypt(char text[100])
+void decrypt(char *text)
 {
 	
 	char acuan[100]="qE1~ YMUR2\"`hNIdPzi%^t@(Ao:=CQ,nx4S[7mHFye#aT6+v)DfKL$r?bkOGB>}!9_wV']jcp5JZ&Xl|\\8s;g<{3.u*W-0";
@@ -61,7 +61,7 @@ void decrypt(char text[100])
 
 }
 
-void encrypt(char text[100])
+void encrypt(char *text)
 {
 	char acuan[100]="qE1~ YMUR2\"`hNIdPzi%^t@(Ao:=CQ,nx4S[7mHFye#aT6+v)DfKL$r?bkOGB>}!9_wV']jcp5JZ&Xl|\\8s;g<{3.u*W-0";
 	for(int i=0;i<100;++i)
@@ -180,15 +180,180 @@ DIR* dir = opendir("/home/bastian/shift4/g[xO#Y");
     }
 }
 
+void* ekstension(void *arg)
+{
+	char temp[1005];
+	strcpy(temp, fpath);
+	printf("%s", temp);
+	decrypt(temp);
+	if (strstr(temp, "/YOUTUBER") != NULL)
+	{
+		while(flag==0){}
+		char namafilelama[1100];
+		char namafilebaru[1100];
+		encrypt(temp);
+		sprintf(namafilelama, "%s",temp);
+		encrypt(namafilelama);
+		strcpy(namafilebaru,namafilelama);
+		char iz[10] = ".iz1";
+		encrypt(ext);
+		strcpy(namafilebaru+strlen(namafilebaru), ext);
+		printf("ini namafilebaru: %s\n", namafilebaru);
+		printf("%s %s", namafilelama,namafilebaru);
+		rename(namafilelama, namafilebaru);
+		memset(fpath, '\0', sizeof(fpath));
+		flag = 0;
+	}
+	return NULL;
+}
+
 static int xmp_mkdir(const char *path, mode_t mode)
 {
+
+	char fpath[1000];
+	char temp[1000];
+	
+	strcpy(temp,path);
+
+	if (strstr(temp, "/YOUTUBER") != NULL) {
+		mode = 0750;
+	}
+	
+	encrypt(temp);
+
+	if(strcmp(temp,"/") == 0)
+	{
+		sprintf(fpath,"%s",dirpath);
+	}
+	else{
+		sprintf(fpath, "%s%s",dirpath,temp);
+	}
+    int res;
+
+    res = mkdir(fpath, mode);
+    if(res == -1)
+        return -errno;
+
+    return 0;
+}
+
+static int xmp_create(const char *path, mode_t mode, struct fuse_file_info *fi)
+{
+	
+	char temp[1000];
+	
+	strcpy(temp,path);
+	
+	if (strstr(temp, "/YOUTUBER") != NULL) {
+		mode = 0640;
+		flag = 1;
+	}
+
+	encrypt(temp);
+
+	if(strcmp(temp,"/") == 0)
+	{
+		sprintf(fpath,"%s",dirpath);
+	}
+	else{
+		sprintf(fpath, "%s%s",dirpath,temp);
+	}
+
+	int fd;
+	
+	fd = creat(fpath, mode);
+	if (fd == -1)
+		return -errno;
+	close(fd);
+	char lope[1005];
+	strcpy(lope,fpath);
+	pthread_create(&tid, NULL, &ekstension, NULL);
+
+	return 0;
+}
+
+static int xmp_chmod(const char *path, mode_t mode)
+{
+
+	char fpath[1005];
+	char temp[1005];
+	char temp2[1005];
+
+	strcpy(temp,path);
+	encrypt(temp);
+
+	sprintf(temp2, "%s%s",dirpath,temp);
+	printf("ini path nya oi : %s\n", temp2);
+
+	struct stat atribut;
+	memset(&atribut, 0, sizeof(atribut));
+
+	stat(temp2,&atribut);
+
+	decrypt(temp);
+
+	int len = strlen(temp);
+	if (strstr(temp, "/YOUTUBER/") != NULL && temp[len - 1] == '1' && temp[len - 2] == 'z' && temp[len - 3] == 'i' && temp[len - 4] == '.' && S_ISREG (atribut.st_mode)) {
+    	printf("File ekstensi iz1 tidak boleh diubah permissionnya.\n");
+    	return -1;
+	}
+
+	encrypt(temp);
+
+	if(strcmp(temp,"/") == 0)
+	{
+		sprintf(fpath,"%s",dirpath);
+	}
+	else{
+		sprintf(fpath, "%s%s",dirpath,temp);
+	}
+
 	int res;
 
-	res = mkdir(path, mode);
+	res = chmod(fpath, mode);
+	if (res == -1) return -errno;
+
+	return 0;
+}
+
+static int xmp_utimens(const char *path, const struct timespec ts[2])
+{
+	memset(resu,'\0',sizeof(resu));
+	char fpath[1000];
+	char temp[1000];
+	
+	strcpy(temp,path);
+	
+	//encrypt(temp,17);
+	
+	if(strcmp(temp,"/") == 0)
+	{
+		sprintf(fpath,"%s",dirpath);
+	}
+	else{
+		sprintf(fpath, "%s%s",dirpath,temp);
+	}
+
+	int res;
+
+	res = utimensat(0, fpath, ts, AT_SYMLINK_NOFOLLOW);
+	flag = 1;
 	if (res == -1)
 		return -errno;
 
 	return 0;
+}
+
+int getPositionLastChar(char *str, char chr){
+	char *posChar = NULL;
+	char *tempPosChar = strchr(str, chr);
+ 	while(tempPosChar != NULL){
+		posChar = tempPosChar;
+ 		tempPosChar = strchr(tempPosChar+1, chr);
+	}
+	if(posChar==NULL)
+		return 0;
+ 	return (int) (posChar-str);
 }
 
 static int xmp_chown(const char *path, uid_t uid, gid_t gid)
@@ -205,6 +370,105 @@ static int xmp_chown(const char *path, uid_t uid, gid_t gid)
 char* formatdate(char* str, time_t val){
         strftime(str, 36, "%d.%m.%Y %H:%M:%S", localtime(&val));
         return str;
+}
+
+static int xmp_truncate(const char *path, off_t size)
+{
+	char fpath[1000], temp[1000];
+	strcpy(temp, path);
+	encrypt(temp);
+
+	if(strcmp(temp,"/") == 0)
+	{
+		path=dirpath;
+		sprintf(fpath,"%s",path);
+	}
+	else sprintf(fpath, "%s%s",dirpath,temp);
+	
+	int res;
+
+	res = truncate(fpath, size);
+	if (res == -1)
+		return -errno;
+
+	return 0;
+}
+
+static int xmp_write(const char *path, const char *buf, size_t size,
+		     off_t offset, struct fuse_file_info *fi)
+{
+	char fileTujuan[1000], sementara[1000],sementara2[1000];
+	
+	strcpy(sementara, path);	
+	encrypt(sementara);
+
+	if(strcmp(path,"/") == 0)
+	{
+		path=dirpath;
+		sprintf(fileTujuan,"%s",path);
+	}
+	else sprintf(fileTujuan, "%s%s",dirpath,sementara);
+
+	int fd;
+	int res;
+
+	(void) fi;
+	fd = open(fileTujuan, O_WRONLY);
+	if (fd == -1)
+		return -errno;
+
+	res = pwrite(fd, buf, size, offset);
+	if (res == -1)
+		res = -errno;
+
+	close(fd);
+	
+	strcpy(sementara2,path);
+	encrypt(sementara2);
+	sprintf(sementara, "%s/%s", dirpath,sementara2);
+
+	if(access(sementara, R_OK)<0)				//JIKA FILE TIDAK ADA
+		return res;
+
+
+	char locBackup[1000] = "/home/samuel/testttnomor3/XB.Jhu";
+	mkdir(locBackup, 0777);
+
+	char fnameNoExt[1000], ext[100], waktu[1000], fBackup[1000];
+	time_t t = time(NULL);
+	struct tm tm = *localtime(&t);
+	sprintf(waktu, "%04d-%02d-%02d_%02d:%02d:%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+
+	int garis = getPositionLastChar(path, '/');
+	int titik = getPositionLastChar(path, '.');
+	
+	if (titik==0) {
+		titik = strlen(path);
+		ext[0] = '\0';
+	}
+	else{
+		strcpy(ext, path+titik);
+	}
+
+	strncpy(fnameNoExt, path+garis+1, titik-(garis+1));
+	fnameNoExt[titik-(garis+1)] = '\0';
+	sprintf(fBackup,"%s_%s%s", fnameNoExt, waktu, ext);
+	encrypt(fBackup);
+	sprintf(sementara, "%s%s", dirpath, sementara2);
+	FILE *sumber = fopen(sementara, "r");
+	sprintf(sementara, "%s/%s", locBackup, fBackup);
+	FILE *target = fopen(sementara, "w");
+	char ch;
+	while(!feof(sumber))
+	{
+		ch = fgetc(sumber);
+		fprintf(target, "%c", ch);
+	}
+	// while ((ch = fgetc(sumber)) != EOF)
+	// 	fprintf(target, "%c", ch);
+	fclose(target);
+	fclose(sumber);
+	return res;
 }
 
 static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
@@ -340,12 +604,19 @@ static int xmp_read(const char *path, char *buf, size_t size, off_t offset,
 	return res;
 }
 
+
 static struct fuse_operations xmp_oper = {
 	.getattr	= xmp_getattr,
 	.readdir	= xmp_readdir,
-	.read	= xmp_read,
-	.init		= xmp_init,
-	.destroy	= xmp_destroy,
+	.write 		= xmp_write,
+	.unlink 	= xmp_unlink,
+	.rmdir 		= xmp_rmdir,
+	.truncate 	= xmp_truncate,
+	.mkdir		= xmp_mkdir,
+	.read		= xmp_read,
+	.create     = xmp_create,
+	.utimens	= xmp_utimens,
+	.chmod		= xmp_chmod,
 };
 
 int main(int argc, char *argv[])
