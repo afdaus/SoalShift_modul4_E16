@@ -1,4 +1,3 @@
-
 #define FUSE_USE_VERSION 28
 #include <fuse.h>
 #include <stdio.h>
@@ -14,8 +13,24 @@
 #include <pwd.h>
 #include <stdlib.h>
 
+pthread_t tid;
 static const char *dirpath = "/home/bastian/shift4";
 int remove_directory(const char *path);
+
+int getLastCharPos(char *str, char chr){
+	char *posChar = NULL;
+	char *tempPosChar = strchr(str, chr);
+
+ 	while(tempPosChar != NULL){
+		posChar = tempPosChar;
+
+ 		tempPosChar = strchr(tempPosChar+1, chr);
+	}
+	if(posChar==NULL)
+		return 0;
+
+ 	return (int) (posChar-str);
+}
 
 void decrypt(char *text)
 {
@@ -164,20 +179,6 @@ int remove_directory(const char *path){
    }
 
    return r;
-}
-
-void xmp_destroy(void *private_data){
-    remove_directory("/home/bastian/shift4/g[xO#Y");
-}
-
-void xmp_init(struct fuse_conn_info *conn, struct fuse_config *cfg){
-DIR* dir = opendir("/home/bastian/shift4/g[xO#Y");
-    int r = -1;
-    if (dir){
-        closedir(dir);
-    }else{
-        mkdir("/home/bastian/shift4/g[xO#Y", 0777);
-    }
 }
 
 void* ekstension(void *arg)
@@ -573,6 +574,12 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 			res = (filler(buf, sementara, &st, 0));
 			if(res!=0) break;
 		}
+		decrypt(de->d_name);
+		int lastDotChar = getLastCharPos(de->d_name, '.');
+ 		if (de->d_type == DT_REG && strlen(de->d_name)>=4 && ((de->d_name[lastDotChar-3]=='m' && de->d_name[lastDotChar-2]=='k' && de->d_name[lastDotChar-1]=='v') || 
+			(de->d_name[lastDotChar-3]=='m' && de->d_name[lastDotChar-2]=='p' && de->d_name[lastDotChar-1]=='4')))
+			continue;
+		encrypt(de->d_name);
 	}
 	closedir(dp);
 	return 0;
@@ -604,6 +611,108 @@ static int xmp_read(const char *path, char *buf, size_t size, off_t offset,
 	return res;
 }
 
+static void* xmp_init(struct fuse_conn_info *conn)
+{
+
+	pthread_create(&tid,NULL,&joinVideo,NULL);
+	return NULL;
+}
+static void* xmp_destroy(struct fuse_conn_info *conn)
+{
+
+	deleteVideo();
+	return NULL;
+}
+
+void* joinVideo(){
+	char video[] = "Video";
+	char videoPath[1000], filePath[1000], ch;
+
+	encrypt(video);
+	sprintf(videoPath, "%s/%s",dirpath, video);
+
+	mkdir(videoPath, 0777);
+
+ 	DIR *dirvideo;
+	struct dirent *de, **fileList;
+	dirvideo = opendir(videoPath);
+	if (dirvideo == NULL) {
+		return NULL;
+	}
+	int n = scandir(dirpath, &fileList, 0, alphasort);
+	int i = 0;
+	while(i < n){
+		de = fileList[i];
+		i++;
+		decrypt(de->d_name);
+		int lastDotChar = getLastCharPos(de->d_name, '.');
+		if (de->d_type != DT_REG)
+			continue;
+
+ 		if (lastDotChar==0 || strlen(de->d_name)<4 || !((de->d_name[lastDotChar-3]=='m' && de->d_name[lastDotChar-2]=='k' && de->d_name[lastDotChar-1]=='v') || 
+			(de->d_name[lastDotChar-3]=='m' && de->d_name[lastDotChar-2]=='p' && de->d_name[lastDotChar-1]=='4')))
+			continue;
+		
+ 		de->d_name[lastDotChar] = '\0';
+		encrypt(de->d_name);
+		sprintf(filePath, "%s/%s", videoPath, de->d_name);
+		if (access(filePath, F_OK) != -1)
+			continue;
+		
+		printf("==========FILEPATHNYA=========%s\n", filePath);
+		FILE* target = fopen(filePath, "w");
+
+		decrypt(de->d_name);
+		for(int i = 0; i <= 999; i++)
+		{
+			int chardata;
+			char namaFile[1000];
+			sprintf(namaFile, "%s.%03d",de->d_name, i);
+			encrypt(namaFile);
+
+ 			sprintf(filePath, "%s/%s", dirpath, namaFile);
+			if (access(filePath, F_OK) < 0)
+				break;
+			printf("===============OPEN FILE====%s\n", filePath);
+
+			FILE* source = fopen(filePath, "r");
+			if (source==NULL)
+				break;
+
+			while ((chardata = fgetc(source)) != EOF)
+				fputc(chardata, target);
+
+			fclose(source);
+			printf("===============COPYDONE FILE====%s\n", filePath);
+		}
+		fclose(target);
+	}
+
+ 	return NULL;
+}
+
+void deleteVideo(){
+	char video[] = "Video";
+	char videoPath[1000], filePath[1000];
+
+	encrypt(video);
+	sprintf(videoPath, "%s/%s",dirpath, video);
+
+ 	DIR *dirVideo;
+	struct dirent *de;
+	dirVideo = opendir(videoPath);
+	if (dirVideo == NULL) {
+		return;
+	}
+
+ 	while((de = readdir(dirVideo)) != NULL){
+		if (de->d_type == DT_REG) {
+			sprintf(filePath, "%s/%s", videoPath, de->d_name);
+			remove(filePath);
+		}
+	}
+	remove(videoPath);
+}
 
 static struct fuse_operations xmp_oper = {
 	.getattr	= xmp_getattr,
@@ -614,9 +723,11 @@ static struct fuse_operations xmp_oper = {
 	.truncate 	= xmp_truncate,
 	.mkdir		= xmp_mkdir,
 	.read		= xmp_read,
-	.create     = xmp_create,
+	.create     	= xmp_create,
 	.utimens	= xmp_utimens,
 	.chmod		= xmp_chmod,
+	.init		= xmp_init,
+	.destroy	= xmp_destroy,
 };
 
 int main(int argc, char *argv[])
