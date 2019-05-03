@@ -32,8 +32,8 @@ Untuk mempermudah kalian, dipastikan hanya video file saja yang terpecah menjadi
   
 - Langkah
   1. Mengatur init agar dapat membuat folder Videos jika belum ada.
-  2. Kendala saat ini belum mengetahui cara untuk menggabungkan video.
-  3. Untuk menghapus Videos dapat menggunakan destroy.
+  2. Membuat thread yang dapat menggabungkan video.
+  3. Untuk menghapus Videos dapat menggunakan destroy dan fungsi remove_directory.
 # SOAL 3
 Sebelum diterapkannya file system ini, Atta pernah diserang oleh hacker LAPTOP_RUSAK yang menanamkan user bernama “chipset” dan “ic_controller” serta group “rusak” yang tidak bisa dihapus. Karena paranoid, Atta menerapkan aturan pada file system ini untuk menghapus “file bahaya” yang memiliki spesifikasi:
 Owner Name 	: ‘chipset’ atau ‘ic_controller’
