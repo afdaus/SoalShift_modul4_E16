@@ -48,9 +48,18 @@ Pada folder YOUTUBER, setiap membuat folder permission foldernya akan otomatis m
 
 Jawab : 
 
-Kami sudah mencoba mengerjakannya, namun kami masih bingung cara memakai fungsi-fungsi fuse seperti xmp_mkdir, xmp_create, dll sehingga belom ada yang bisa dikerjakan dari nomor 4 ini. Kami tahu bahwa soal ini pasti menggunakan xmp_mkdir, xmp_create, dan xmp_chown namun kami masih bingung untuk memasukkan apa saja ke dalam fungsi-fungsi itu.
+Fungsi yang digunakan : mkdir, create, chmod, ekstension(untuk thread)
+
+Penjelasan :
+Jadi untuk membuat folder yang permission foldernya akan otomatis menjadi 750 akan berada pada fungsi mkdir. Dari path yang ada akan dicek apakah ada /YOUTUBER di path tersebut, jika ada maka folder akan otomatis terbuat dengan file permission 750 (-rwxr-x---). Sedangkan file yang dibuat permissionnya akan otomatis menjadi 640, akan berada pada fungsi create. Prinsipnya sama seperti fungsi mkdir, jika menemukan string /YOUTUBER maka file permission akan otomatis diubah menjadi 640. Lalu selain mkdir dan create kami memakai fungsi lain yaitu fungsi chmod untuk mengecek file yang berada pada folder YOUTUBER, jika ekstensionnya .iz1 maka file permission tersebut tidak dapat diubah. 
 
 # SOAL 5
 Ketika mengedit suatu file dan melakukan save, maka akan terbuat folder baru bernama Backup kemudian hasil dari save tersebut akan disimpan pada backup dengan nama namafile_[timestamp].ekstensi. Dan ketika file asli dihapus, maka akan dibuat folder bernama RecycleBin, kemudian file yang dihapus beserta semua backup dari file yang dihapus tersebut (jika ada) di zip dengan nama namafile_deleted_[timestamp].zip dan ditaruh ke dalam folder RecycleBin (file asli dan backup terhapus). Dengan format [timestamp] adalah yyyy-MM-dd_HH:mm:ss
 
-- Untuk nomor 5, kelompok kami belum sempat mencoba untuk mengerjakan karena disaat yang bersamaan, kelompok kami memiliki banyak tugas yang baru diberikan minggu ini dan deadlinenya di minggu ini juga. Kita sudah sempat mencermati soalnya, namun masih belum terpikirkan cara untuk menyelesaikannya.
+Jawab :
+
+Fungsi yang digunakan : write, unlink
+
+Penjelasan :
+Dalam fungsi write, jika ada file-file yang diupdate maka folder bernama BackUp akan otomatis terbuat dan isi dari BackUp itu adalah isi file yang sudah terupdate.
+Sedangkan dalam fungsi unlink, pada saat file di hapus, akan terbuat folder RecycleBin secara otomatis untuk menampung file yang di hapus setelah di zip terlebih dahulu. Setelah dipindah ke RecycleBin, file asli akan terhapus.
